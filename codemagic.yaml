@@ -1,0 +1,29 @@
+workflows:
+  ios_build:
+    name: iOS Build
+    triggering:
+      events:
+        - push
+        - pull_request
+    environment:
+      xcode: latest
+      cocoapods: false
+      flutter: false
+    scripts:
+      - name: Verify Xcode project
+        script: |
+          set -e
+          if [ ! -d "HackintoshReviewApp.xcodeproj" ]; then
+            echo "Error: Xcode project not found. Add HackintoshReviewApp.xcodeproj to the repo."
+            exit 1
+          fi
+      - name: Build app
+        script: |
+          set -e
+          xcodebuild -project HackintoshReviewApp.xcodeproj \
+            -scheme HackintoshReviewApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - build/Release-iphoneos/*.app
