@@ -7,8 +7,8 @@ workflows:
         - pull_request
     environment:
       xcode: latest
-      cocoapods: false
-      flutter: false
+      cocoapods: default
+      flutter: default
     scripts:
       - name: Locate Xcode project or workspace
         script: |
