@@ -7,7 +7,7 @@ workflows:
         - pull_request
     environment:
       xcode: latest
-      cocoapods: false
+      cocoapods: default
       flutter: false
     scripts:
       - name: Verify Xcode project
