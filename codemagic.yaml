@@ -7,23 +7,43 @@ workflows:
         - pull_request
     environment:
       xcode: latest
-      cocoapods: default
-      flutter: default
+      cocoapods: false
+      flutter: false
     scripts:
-      - name: Verify Xcode project
+      - name: Locate Xcode project or workspace
         script: |
           set -e
-          if [ ! -d "HackintoshReviewApp.xcodeproj" ]; then
-            echo "Error: Xcode project not found. Add HackintoshReviewApp.xcodeproj to the repo."
+          if [ -n "${PROJECT_PATH:-}" ] && [ -d "$PROJECT_PATH" ]; then
+            echo "Using Xcode project: $PROJECT_PATH"
+          elif [ -n "${WORKSPACE_PATH:-}" ] && [ -d "$WORKSPACE_PATH" ]; then
+            echo "Using Xcode workspace: $WORKSPACE_PATH"
+          elif ls *.xcworkspace 1> /dev/null 2>&1; then
+            WORKSPACE_PATH=$(ls *.xcworkspace | head -n1)
+            echo "Detected workspace: $WORKSPACE_PATH"
+          elif ls *.xcodeproj 1> /dev/null 2>&1; then
+            PROJECT_PATH=$(ls *.xcodeproj | head -n1)
+            echo "Detected project: $PROJECT_PATH"
+          else
+            echo "Error: No .xcodeproj or .xcworkspace found in the repository. Add the Xcode project/workspace to build."
             exit 1
           fi
+          echo "PROJECT_PATH=$PROJECT_PATH"
+          echo "WORKSPACE_PATH=$WORKSPACE_PATH"
       - name: Build app
         script: |
           set -e
-          xcodebuild -project HackintoshReviewApp.xcodeproj \
-            -scheme HackintoshReviewApp \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO
+          if [ -n "$WORKSPACE_PATH" ]; then
+            xcodebuild -workspace "$WORKSPACE_PATH" \
+              -scheme HackintoshReviewApp \
+              -configuration Release \
+              -destination 'generic/platform=iOS' \
+              CODE_SIGNING_ALLOWED=NO
+          else
+            xcodebuild -project "$PROJECT_PATH" \
+              -scheme HackintoshReviewApp \
+              -configuration Release \
+              -destination 'generic/platform=iOS' \
+              CODE_SIGNING_ALLOWED=NO
+          fi
     artifacts:
       - build/Release-iphoneos/*.app
