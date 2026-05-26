@@ -8,7 +8,7 @@ workflows:
     environment:
       xcode: latest
       cocoapods: default
-      flutter: false
+      flutter: default
     scripts:
       - name: Verify Xcode project
         script: |
